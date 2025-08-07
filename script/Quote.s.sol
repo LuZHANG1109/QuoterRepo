@@ -36,7 +36,6 @@ contract Deploy is Test {
     address positionManager = 0x4529A01c7A0410167c5740C487A8DE60232617bf;
 
     function run() public {
-        require(deployer == 0x399EfA78cAcD7784751CD9FBf2523eDf9EFDf6Ad, "wrong deployer! change the private key");
         // base
         // vm.createSelectFork("https://base.llamarpc.com");
         // eth
