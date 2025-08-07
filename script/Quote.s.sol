@@ -10,30 +10,48 @@ contract Deploy is Test {
     // base
     // address stateView = 0xA3c0c9b65baD0b08107Aa264b0f3dB444b867A71;
     // address positionManager = 0x7C5f5A4bBd8fD63184577525326123B519429bDc;
+    // address pancakeInfinityCLPoolManager = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
+    // address pancakeInfinityPositionManager = 0x55f4c8abA71A1e923edC303eb4fEfF14608cC226;
     // eth
     // address stateView = 0x7fFE42C4a5DEeA5b0feC41C94C136Cf115597227;
     // address positionManager = 0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // Arbitrum
     // address stateView = 0x76Fd297e2D437cd7f76d50F01AfE6160f86e9990;
     // address positionManager = 0xd88F38F930b7952f2DB2432Cb002E7abbF3dD869;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // Optimism
     // address stateView = 0xc18a3169788F4F75A170290584ECA6395C75Ecdb;
     // address positionManager = 0x3C3Ea4B57a46241e54610e5f022E5c45859A1017;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // Polygon
     // address stateView = 0x5eA1bD7974c8A611cBAB0bDCAFcB1D9CC9b3BA5a;
     // address positionManager = 0x1Ec2eBf4F37E7363FDfe3551602425af0B3ceef9;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // Blast
     // address stateView = 0x12a88AE16F46DCe4e8B15368008Ab3380885df30;
     // address positionManager = 0x4AD2F4CcA2682cBB5B950d660dD458a1D3f1bAaD;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // Avalanche
     // address stateView = 0xc3c9e198C735a4b97e3e683f391cCBDD60B69286;
     // address positionManager = 0xB74b1F14d2754AcfcbBe1a221023a5cf50Ab8ACD;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
     // BNB Smart Chain
-    // address stateView = 0xd13Dd3D6E93f276FAfc9Db9E6BB47C1180aeE0c4;
-    // address positionManager = 0x7A4a5c919aE2541AeD11041A1AEeE68f1287f95b;
+    address stateView = 0xd13Dd3D6E93f276FAfc9Db9E6BB47C1180aeE0c4;
+    address positionManager = 0x7A4a5c919aE2541AeD11041A1AEeE68f1287f95b;
+    address pancakeInfinityCLPoolManager = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
+    address pancakeInfinityPositionManager = 0x55f4c8abA71A1e923edC303eb4fEfF14608cC226;
     // UniChain
-    address stateView = 0x86e8631A016F9068C3f085fAF484Ee3F5fDee8f2;
-    address positionManager = 0x4529A01c7A0410167c5740C487A8DE60232617bf;
+    // address stateView = 0x86e8631A016F9068C3f085fAF484Ee3F5fDee8f2;
+    // address positionManager = 0x4529A01c7A0410167c5740C487A8DE60232617bf;
+    // address pancakeInfinityCLPoolManager = 0x0000000000000000000000000000000000000000;
+    // address pancakeInfinityPositionManager = 0x0000000000000000000000000000000000000000;
 
     function run() public {
         // base
@@ -51,13 +69,14 @@ contract Deploy is Test {
         // Avalanche
         // vm.createSelectFork(vm.envString("AVAX_RPC_URL"));
         // BNB Smart Chain
-        // vm.createSelectFork("https://binance.llamarpc.com");
+        vm.createSelectFork("https://binance.llamarpc.com");
         // unichain
-        vm.createSelectFork("https://mainnet.unichain.org");
+        // vm.createSelectFork("https://mainnet.unichain.org");
 
         vm.startBroadcast(deployer);
-        require(block.chainid == 130, "must be right chain");
-        quoter = new QueryData(stateView, positionManager);
+        require(block.chainid == 56, "must be right chain");
+        // For Unichain deployment, Pancake Infinity addresses are not needed (set to 0)
+        quoter = new QueryData(stateView, positionManager, pancakeInfinityCLPoolManager, pancakeInfinityPositionManager);
         console2.log("query address", address(quoter));
         vm.stopBroadcast();
     }

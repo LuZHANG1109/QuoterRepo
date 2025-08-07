@@ -341,6 +341,43 @@ interface IPositionManager {
 
 interface IHooks {}
 
+interface ICLPoolManager {
+    type PoolId is bytes32;
+    
+    /// @notice Get the tick info about a specific tick in the pool
+    function getPoolTickInfo(PoolId id, int24 tick) external view returns (Tick.Info memory);
+
+    /// @notice Get the tick bitmap info about a specific range (a word range) in the pool
+    function getPoolBitmapInfo(PoolId id, int16 word) external view returns (uint256 tickBitmap);
+    
+    /// @notice Get Slot0 of the pool: sqrtPriceX96, tick, protocolFee, lpFee
+    function getSlot0(PoolId id)
+        external
+        view
+        returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee);
+}
+
+/// @notice Tick info library for Pancake Infinity
+library Tick {
+    struct Info {
+        uint128 liquidityGross;
+        int128 liquidityNet;
+        uint256 feeGrowthOutside0X128;
+        uint256 feeGrowthOutside1X128;
+    }
+}
+
+/// @notice Pool parameters helper for extracting tickSpacing
+library CLPoolParametersHelper {
+    uint256 internal constant OFFSET_TICK_SPACING = 16;
+    
+    function getTickSpacing(bytes32 params) internal pure returns (int24 tickSpacing) {
+        assembly {
+            tickSpacing := and(shr(OFFSET_TICK_SPACING, params), 0xffffff)
+        }
+    }
+}
+
 /// @title DexNativeRouter
 /// @notice Entrance of trading native token in web3-dex
 contract QueryData {
@@ -348,13 +385,19 @@ contract QueryData {
     int24 internal constant MAX_TICK_PLUS_1 = 887_272 + 1;
     address public immutable STATE_VIEW;
     address public immutable POSITION_MANAGER;
+    address public immutable PANCAKE_INFINITY_CLPOOLMANAGER;
+    address public immutable PANCAKE_INFINITY_POSITION_MANAGER;
 
     constructor (
         address stateView,
-        address positionManager
+        address positionManager,
+        address pancakeInfinityCLPoolManager,
+        address pancakeInfinityPositionManager
     ) {
         STATE_VIEW = stateView;
         POSITION_MANAGER = positionManager;
+        PANCAKE_INFINITY_CLPOOLMANAGER = pancakeInfinityCLPoolManager;
+        PANCAKE_INFINITY_POSITION_MANAGER = pancakeInfinityPositionManager;
     }
 
     type Currency is address;
@@ -1084,6 +1127,117 @@ contract QueryData {
                         
                         (uint128 liquidityGross, int128 liquidityNet) = 
                             IStateView(STATE_VIEW).getTickLiquidity(statePoolId, int24(int256(tick)));
+
+                        int256 data = int256(uint256(int256(tick)) << 128) +
+                            (int256(liquidityNet) & 0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff);
+                        tickInfo = bytes.concat(tickInfo, bytes32(uint256(data)));
+
+                        index++;
+                    }
+
+                    res = res << 1;
+                    if (i == 0) break;
+                }
+            }
+            isInitPoint = false;
+            tmp.initPoint2 = 256;
+            tmp.left--;
+        }
+        return tickInfo;
+    }
+
+    function queryPancakeInfinityTicksSuperCompact(bytes32 poolId, uint256 len)
+        public
+        view
+        returns (bytes memory)
+    {
+        SuperVar memory tmp;
+        
+        // 从 PANCAKE_INFINITY_POSITION_MANAGER 获取 poolKey 中的 parameters 来提取 tickSpacing
+        {
+            (, bytes memory result) = PANCAKE_INFINITY_POSITION_MANAGER.staticcall(
+                abi.encodeWithSignature("poolKeys(bytes25)", bytes25(poolId))
+            );
+            bytes32 parameters;
+            assembly {
+                // Skip currency0 (32), currency1 (32), hooks (32), poolManager (32), fee (32)
+                // Parameters is at offset 160 (32 * 5)
+                parameters := mload(add(result, 192))
+            }
+            tmp.tickSpacing = CLPoolParametersHelper.getTickSpacing(parameters);
+        }
+        
+        ICLPoolManager.PoolId clPoolId = ICLPoolManager.PoolId.wrap(poolId);
+        
+        // 读取 slot0 结构中的当前 tick
+        {
+            (, int24 tick, , ) = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getSlot0(clPoolId);
+            tmp.currTick = tick;
+        }
+        
+        tmp.right = tmp.currTick / tmp.tickSpacing / int24(256);
+        tmp.leftMost = -887_272 / tmp.tickSpacing / int24(256) - 2;
+        tmp.rightMost = 887_272 / tmp.tickSpacing / int24(256) + 1;
+
+        if (tmp.currTick < 0) {
+            tmp.initPoint =
+                uint256(
+                    int256(tmp.currTick) /
+                        int256(tmp.tickSpacing) -
+                        (int256(tmp.currTick) / int256(tmp.tickSpacing) / 256 - 1) *
+                        256
+                ) %
+                256;
+        } else {
+            tmp.initPoint = (uint256(int256(tmp.currTick)) / uint256(int256(tmp.tickSpacing))) % 256;
+        }
+        tmp.initPoint2 = tmp.initPoint;
+
+        if (tmp.currTick < 0) tmp.right--;
+
+        bytes memory tickInfo;
+        tmp.left = tmp.right;
+
+        uint256 index = 0;
+
+        while (index < len / 2 && tmp.right < tmp.rightMost) {
+            uint256 res = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getPoolBitmapInfo(clPoolId, int16(tmp.right));
+            if (res > 0) {
+                res = res >> tmp.initPoint;
+                for (uint256 i = tmp.initPoint; i < 256 && index < len / 2; i++) {
+                    uint256 isInit = res & 0x01;
+                    if (isInit > 0) {
+                        int256 tick = int256((256 * tmp.right + int256(i)) * tmp.tickSpacing);
+                        
+                        Tick.Info memory tickInfo_ = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getPoolTickInfo(clPoolId, int24(int256(tick)));
+                        int128 liquidityNet = tickInfo_.liquidityNet;
+
+                        int256 data = int256(uint256(int256(tick)) << 128) +
+                            (int256(liquidityNet) & 0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff);
+                        tickInfo = bytes.concat(tickInfo, bytes32(uint256(data)));
+
+                        index++;
+                    }
+
+                    res = res >> 1;
+                }
+            }
+            tmp.initPoint = 0;
+            tmp.right++;
+        }
+
+        bool isInitPoint = true;
+        while (index < len && tmp.left > tmp.leftMost) {
+            uint256 res = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getPoolBitmapInfo(clPoolId, int16(tmp.left));
+            if (res > 0 && tmp.initPoint2 != 0) {
+                res = isInitPoint ? res << ((256 - tmp.initPoint2) % 256) : res;
+                for (uint256 i = tmp.initPoint2 - 1; i >= 0 && index < len; i--) {
+                    uint256 isInit = res & 0x8000000000000000000000000000000000000000000000000000000000000000;
+                    if (isInit > 0) {
+                        int256 tick = int256((256 * tmp.left + int256(i)) * tmp.tickSpacing);
+                        
+                        Tick.Info memory tickInfo_ = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getPoolTickInfo(clPoolId, int24(int256(tick)));
+                        int128 liquidityNet = tickInfo_.liquidityNet;
 
                         int256 data = int256(uint256(int256(tick)) << 128) +
                             (int256(liquidityNet) & 0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff);
