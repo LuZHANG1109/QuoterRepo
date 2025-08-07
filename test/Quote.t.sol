@@ -18,7 +18,7 @@ contract UniV4QuoterTest is Test{
 
     function setUp() public {
         // vm.createSelectFork("https://mainnet.unichain.org");
-        vm.createSelectFork("https://ethereum.rpc.subquery.network/public");
+        vm.createSelectFork("https://eth.llamarpc.com");
         // vm.createSelectFork("https://base.rpc.subquery.network/public");
         // quoter = new QueryData(stateView, positionManager);
     }
@@ -33,7 +33,7 @@ contract UniV4QuoterTest is Test{
         // });
 
         // bytes32 poolId = 0x72331FCB696B0151904C03584B66DC8365BC63F8A144D89A773384E3A579CA73;
-        bytes32 poolId = 0x811a9d9ae89f0bd308e8c2d5f66e98974069f8b9e239b7154438b461b447bd99;
+        bytes32 poolId = 0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73;
         // unichain
         // bytes32 poolId = 0x25939956ef14a098d95051d86c75890cfd623a9eeba055e46d8dd9135980b37c;
         bytes memory tickInfo = quoter.queryUniv4TicksSuperCompact(poolId, 250);
