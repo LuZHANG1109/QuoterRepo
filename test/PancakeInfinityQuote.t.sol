@@ -21,6 +21,7 @@ contract PancakeInfinityQuoterTest is Test {
     address constant POSITION_MANAGER = 0x7A4a5c919aE2541AeD11041A1AEeE68f1287f95b;
     address constant PANCAKE_CL_POOL_MANAGER = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
     address constant PANCAKE_POSITION_MANAGER = 0x55f4c8abA71A1e923edC303eb4fEfF14608cC226;
+    address constant POOL_MANAGER = 0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF;
     
     // Test pool info
     bytes32 constant POOL_ID = 0xcbd4959ff2c7a4191b8e359e9775f89554ec104d6cfdfa9d722871e385a4489a;
@@ -44,7 +45,7 @@ contract PancakeInfinityQuoterTest is Test {
         vm.createSelectFork(vm.envString("BSC_RPC_URL"));
         
         // Deploy new QueryData contract
-        quoter = new QueryData(STATE_VIEW, POSITION_MANAGER, PANCAKE_CL_POOL_MANAGER, PANCAKE_POSITION_MANAGER);
+        quoter = new QueryData(STATE_VIEW, POSITION_MANAGER, POOL_MANAGER, PANCAKE_CL_POOL_MANAGER, PANCAKE_POSITION_MANAGER);
     }
 
     // Basic test to check if we can interact with the contracts
