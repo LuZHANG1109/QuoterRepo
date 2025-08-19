@@ -410,21 +410,17 @@ contract QueryData {
     address public immutable POOL_MANAGER;
     address public immutable STATE_VIEW;
     address public immutable POSITION_MANAGER;
-    address public immutable PANCAKE_INFINITY_CLPOOLMANAGER;
-    address public immutable PANCAKE_INFINITY_POSITION_MANAGER;
+    address public constant PANCAKE_INFINITY_CLPOOLMANAGER = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
+    address public constant PANCAKE_INFINITY_POSITION_MANAGER = 0x55f4c8abA71A1e923edC303eb4fEfF14608cC226;
 
     constructor (
         address stateView,
         address positionManager,
-        address poolManager,
-        address pancakeInfinityCLPoolManager,
-        address pancakeInfinityPositionManager
+        address poolManager
     ) {
         STATE_VIEW = stateView;
         POSITION_MANAGER = positionManager;
         POOL_MANAGER = poolManager;
-        PANCAKE_INFINITY_CLPOOLMANAGER = pancakeInfinityCLPoolManager;
-        PANCAKE_INFINITY_POSITION_MANAGER = pancakeInfinityPositionManager;
     }
 
     type Currency is address;
