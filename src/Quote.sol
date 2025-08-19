@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 /// @title Pool state that never changes
 /// @notice These parameters are fixed for a pool forever, i.e., the methods will always return the same values
-
 interface IUniswapV3PoolImmutables {
     /// @notice The contract that deployed the pool, which must adhere to the IUniswapV3Factory interface
     /// @return The contract address
@@ -212,6 +211,7 @@ interface IHorizonPool {
 /// @notice A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
 /// to the ERC20 specification
 /// @dev The pool interface is broken up into many smaller pieces
+interface IUniswapV3Pool is IUniswapV3PoolImmutables, IUniswapV3PoolState {}
 
 interface IAlgebraPool {
     function globalState()
@@ -282,8 +282,6 @@ interface IAlgebraPoolV1_9 {
         );
     function tickTable(int16 wordPosition) external view returns (uint256);
 }
-
-interface IUniswapV3Pool is IUniswapV3PoolImmutables, IUniswapV3PoolState {}
 
 interface IStateView {
     type PoolId is bytes32;
@@ -1080,12 +1078,11 @@ contract QueryData {
 
         IStateView.PoolId statePoolId = IStateView.PoolId.wrap(poolId);
 
-        // 读取 slot0 结构中的当前 tick
         {
             (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee) = IStateView(STATE_VIEW).getSlot0(statePoolId);
             tmp.currTick = tick;
         }
-        //TickSpacing是否可以整除
+
         tmp.right = tmp.currTick / tmp.tickSpacing / int24(256);
         tmp.leftMost = -887_272 / tmp.tickSpacing / int24(256) - 2;
         tmp.rightMost = 887_272 / tmp.tickSpacing / int24(256) + 1;
@@ -1176,7 +1173,6 @@ contract QueryData {
     {
         SuperVar memory tmp;
         
-        // 从 PANCAKE_INFINITY_POSITION_MANAGER 获取 poolKey 中的 parameters 来提取 tickSpacing
         {
             (, bytes memory result) = PANCAKE_INFINITY_POSITION_MANAGER.staticcall(
                 abi.encodeWithSignature("poolKeys(bytes25)", bytes25(poolId))
@@ -1192,7 +1188,6 @@ contract QueryData {
         
         ICLPoolManager.PoolId clPoolId = ICLPoolManager.PoolId.wrap(poolId);
         
-        // 读取 slot0 结构中的当前 tick
         {
             (, int24 tick, , ) = ICLPoolManager(PANCAKE_INFINITY_CLPOOLMANAGER).getSlot0(clPoolId);
             tmp.currTick = tick;
@@ -1287,13 +1282,12 @@ contract QueryData {
         bytes32 poolId = toId(poolkey);
         IStateView.PoolId statePoolId = IStateView.PoolId.wrap(poolId);
 
-        // 读取 slot0 结构中的当前 tick
         {
             (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee) =
                 IStateView(STATE_VIEW).getSlot0(statePoolId);
             tmp.currTick = tick;
         }
-        //TickSpacing是否可以整除
+
         tmp.right = tmp.currTick / tmp.tickSpacing / int24(256);
         tmp.leftMost = -887_272 / tmp.tickSpacing / int24(256) - 2;
         tmp.rightMost = 887_272 / tmp.tickSpacing / int24(256) + 1;
