@@ -385,19 +385,15 @@ contract QueryData {
     int24 internal constant MAX_TICK_PLUS_1 = 887_272 + 1;
     address public immutable STATE_VIEW;
     address public immutable POSITION_MANAGER;
-    address public immutable PANCAKE_INFINITY_CLPOOLMANAGER;
-    address public immutable PANCAKE_INFINITY_POSITION_MANAGER;
+    address public constant PANCAKE_INFINITY_CLPOOLMANAGER = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
+    address public constant PANCAKE_INFINITY_POSITION_MANAGER = 0x55f4c8abA71A1e923edC303eb4fEfF14608cC226;
 
     constructor (
         address stateView,
-        address positionManager,
-        address pancakeInfinityCLPoolManager,
-        address pancakeInfinityPositionManager
+        address positionManager
     ) {
         STATE_VIEW = stateView;
         POSITION_MANAGER = positionManager;
-        PANCAKE_INFINITY_CLPOOLMANAGER = pancakeInfinityCLPoolManager;
-        PANCAKE_INFINITY_POSITION_MANAGER = pancakeInfinityPositionManager;
     }
 
     type Currency is address;
