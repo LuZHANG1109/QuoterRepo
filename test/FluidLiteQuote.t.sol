@@ -28,7 +28,7 @@ contract FluidLiteQuoteTest is Test {
         console2.log("dexIds[0]:");
         console2.logBytes8(dexIds[0]);
 
-        console2.log("\n  --------------- Test getDexIdByKey ---------------");
+        console2.log("\n  --------------- Test calculateDexIdByKey ---------------");
         bytes8 dexId0 = quote.calculateDexIdByKey(dexKeys[0]);
         console2.log("dexId0:");
         console2.logBytes8(dexId0);
@@ -40,20 +40,26 @@ contract FluidLiteQuoteTest is Test {
         console2.log("dexKey0.salt:");
         console2.logBytes32(dexKey0.salt);
 
-        console2.log("\n  --------------- Test getLiquidityByKey ---------------");
-        (uint256 centerPrice, uint256 token0ImaginaryReserves, uint256 token1ImaginaryReserves) = quote.getLiquidityByKey(dexKeys[0]);
-        console2.log("centerPrice:", centerPrice);
-        console2.log("token0ImaginaryReserves:", token0ImaginaryReserves);
-        console2.log("token1ImaginaryReserves:", token1ImaginaryReserves);
+        console2.log("\n  --------------- Test getShiftStatusById ---------------");
+        (uint256 dexVariables, uint256 rangeShift, uint256 thresholdShift, uint256 centerPriceShift) = quote.getShiftStatusById(dexId0);
+        console2.log("dexVariables:", dexVariables);
+        console2.log("rangeShift:", rangeShift);
+        console2.log("thresholdShift:", thresholdShift);
+        console2.log("centerPriceShift:", centerPriceShift);
 
-        console2.log("\n  --------------- Test getKeyAndLiquidityById ---------------");
-        (FluidLiteQuote.DexKey memory dexKey1, uint256 centerPrice1, uint256 token0ImaginaryReserves1, uint256 token1ImaginaryReserves1) = quote.getKeyAndLiquidityById(dexId0);
-        console2.log("dexKey1.token0:", dexKey1.token0);
-        console2.log("dexKey1.token1:", dexKey1.token1);
-        console2.log("dexKey1.salt:");
-        console2.logBytes32(dexKey1.salt);
+        console2.log("\n  --------------- Test getShiftStatusByKey ---------------");
+        (uint256 dexVariables1, uint256 rangeShift1, uint256 thresholdShift1, uint256 centerPriceShift1) = quote.getShiftStatusByKey(dexKeys[0]);
+        console2.log("dexVariables:", dexVariables1);
+        console2.log("rangeShift:", rangeShift1);
+        console2.log("thresholdShift:", thresholdShift1);
+        console2.log("centerPriceShift:", centerPriceShift1);
+        
+        console2.log("\n  --------------- Test getCenterPriceById ---------------");
+        uint256 centerPrice = quote.getCenterPriceById(dexId0);
+        console2.log("centerPrice:", centerPrice);
+
+        console2.log("\n  --------------- Test getCenterPriceByKey ---------------");
+        uint256 centerPrice1 = quote.getCenterPriceByKey(dexKeys[0]);
         console2.log("centerPrice1:", centerPrice1);
-        console2.log("token0ImaginaryReserves1:", token0ImaginaryReserves1);
-        console2.log("token1ImaginaryReserves1:", token1ImaginaryReserves1);
     }
 }
