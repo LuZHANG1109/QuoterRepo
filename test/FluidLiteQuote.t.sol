@@ -40,26 +40,24 @@ contract FluidLiteQuoteTest is Test {
         console2.log("dexKey0.salt:");
         console2.logBytes32(dexKey0.salt);
 
+        // console2.log("\n  --------------- Test getCenterPriceById ---------------");
+        // uint256 centerPrice = quote.getCenterPriceById(dexId0);
+        // console2.log("centerPrice:", centerPrice);
+
         console2.log("\n  --------------- Test getShiftStatusById ---------------");
-        (uint256 dexVariables, uint256 rangeShift, uint256 thresholdShift, uint256 centerPriceShift) = quote.getShiftStatusById(dexId0);
-        console2.log("dexVariables:", dexVariables);
-        console2.log("rangeShift:", rangeShift);
-        console2.log("thresholdShift:", thresholdShift);
-        console2.log("centerPriceShift:", centerPriceShift);
-
-        console2.log("\n  --------------- Test getShiftStatusByKey ---------------");
-        (uint256 dexVariables1, uint256 rangeShift1, uint256 thresholdShift1, uint256 centerPriceShift1) = quote.getShiftStatusByKey(dexKeys[0]);
-        console2.log("dexVariables:", dexVariables1);
-        console2.log("rangeShift:", rangeShift1);
-        console2.log("thresholdShift:", thresholdShift1);
-        console2.log("centerPriceShift:", centerPriceShift1);
-        
-        console2.log("\n  --------------- Test getCenterPriceById ---------------");
-        uint256 centerPrice = quote.getCenterPriceById(dexId0);
-        console2.log("centerPrice:", centerPrice);
-
-        console2.log("\n  --------------- Test getCenterPriceByKey ---------------");
-        uint256 centerPrice1 = quote.getCenterPriceByKey(dexKeys[0]);
-        console2.log("centerPrice1:", centerPrice1);
+        for (uint256 i = 0; i < dexIds.length; i++) {
+            console2.log("----- dexId index:", i, " -----");
+            (uint256 dexVariables, uint256 rangeShift, uint256 thresholdShift, uint256 centerPriceShift, uint256 token0ImaginaryReserves, uint256 token1ImaginaryReserves) = quote.getShiftStatusById(dexIds[i]);
+            console2.log("dexVariables:", dexVariables);
+            console2.log("rangeShift:", rangeShift);
+            console2.log("thresholdShift:", thresholdShift);
+            console2.log("centerPriceShift:", centerPriceShift);
+            uint256 token0AdjustedSupply_ = (dexVariables >> 136) & 0xfffffffffffffff;
+            uint256 token1AdjustedSupply_ = (dexVariables >> 196) & 0xfffffffffffffff;
+            console2.log("token0AdjustedSupply_:", token0AdjustedSupply_);
+            console2.log("token1AdjustedSupply_:", token1AdjustedSupply_);
+            console2.log("token0ImaginaryReserves_:", token0ImaginaryReserves);
+            console2.log("token1ImaginaryReserves_:", token1ImaginaryReserves);
+        }
     }
 }
